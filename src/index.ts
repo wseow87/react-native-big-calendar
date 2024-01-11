@@ -2,12 +2,14 @@ import dayjs from 'dayjs'
 import duration from 'dayjs/plugin/duration'
 import isBetween from 'dayjs/plugin/isBetween'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
+import weekYear from 'dayjs/plugin/weekYear'
 
 import { Calendar } from './components/Calendar'
 
 dayjs.extend(duration)
 dayjs.extend(isBetween)
 dayjs.extend(weekOfYear)
+dayjs.extend(weekYear)
 
 export * from './components/Calendar'
 export * from './components/CalendarBody'

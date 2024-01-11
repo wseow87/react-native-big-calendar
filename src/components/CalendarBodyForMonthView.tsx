@@ -167,7 +167,7 @@ function _CalendarBodyForMonthView<T extends ICalendarEventBase>({
                   },
                 ]}
               >
-                {week.length > 0 ? targetDate.date(week[0]).week() : ''}
+                {week.length > 0 ? targetDate.date(week[0]).weekYear() : ''}
               </Text>
             </View>
           ) : null}
