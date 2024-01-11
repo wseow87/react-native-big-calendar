@@ -102,7 +102,9 @@ function _CalendarHeader<T extends ICalendarEventBase>({
                     u['text-center'],
                   ]}
                 >
-                  {dateRange.length > 0 ? dateRange[Math.floor(dateRange.length / 2)].date() : ''}
+                  {dateRange.length > 0
+                    ? dateRange[0].startOf('week').add(4, 'days').isoWeek()
+                    : ''}
                 </Text>
               </View>
             </View>
