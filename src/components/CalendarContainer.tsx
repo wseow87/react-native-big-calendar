@@ -31,6 +31,7 @@ import { CalendarBody } from './CalendarBody'
 import { CalendarBodyForMonthView } from './CalendarBodyForMonthView'
 import { CalendarHeader } from './CalendarHeader'
 import { CalendarHeaderForMonthView } from './CalendarHeaderForMonthView'
+import { Schedule } from './Schedule'
 
 export interface CalendarContainerProps<T extends ICalendarEventBase> {
   /**
@@ -75,6 +76,7 @@ export interface CalendarContainerProps<T extends ICalendarEventBase> {
   renderEvent?: EventRenderer<T>
   renderHeader?: HeaderRenderer<T>
   renderHeaderForMonthView?: MonthHeaderRenderer
+  renderCustomDateForMonth?: (date: Date) => React.ReactElement | null
 
   ampm?: boolean
   date?: Date
@@ -88,6 +90,7 @@ export interface CalendarContainerProps<T extends ICalendarEventBase> {
   swipeEnabled?: boolean
   weekStartsOn?: WeekNum
   onChangeDate?: DateRangeHandler
+  onLongPressCell?: (date: Date) => void
   onPressCell?: (date: Date) => void
   onPressDateHeader?: (date: Date) => void
   onPressEvent?: (event: T) => void
@@ -102,6 +105,32 @@ export interface CalendarContainerProps<T extends ICalendarEventBase> {
   sortedMonthView?: boolean
   moreLabel?: string
   isEventOrderingEnabled?: boolean
+  onPressMoreLabel?: (event: T[]) => void
+  disableMonthEventCellPress?: boolean
+  showVerticalScrollIndicator?: boolean
+  itemSeparatorComponent?: React.ComponentType<any> | null | undefined
+  /**
+   * Callback when the user swipes horizontally.
+   * Note: Memoize this callback to avoid un-necessary re-renders.
+   * @param date The date where the user swiped to.
+   */
+  onSwipeEnd?: (date: Date) => void
+  /**
+   * If provided, we will skip the internal process of building the enriched events by date dictionary.
+   */
+  enrichedEventsByDate?: Record<string, T[]>
+  /**
+   * If true, the events will be enriched with the following properties:
+   * - `overlapPosition`: position of the event in the stack of overlapping events
+   * Default value is `false`.
+   */
+  enableEnrichedEvents?: boolean
+  /**
+   * If true, skip the sorting of events improving the performance.
+   * This parameter is ignored if `enableEnrichedEvents` is `false`.
+   * Default value is `false`.
+   */
+  eventsAreSorted?: boolean
 }
 
 function _CalendarContainer<T extends ICalendarEventBase>({
@@ -128,6 +157,7 @@ function _CalendarContainer<T extends ICalendarEventBase>({
   swipeEnabled = true,
   weekStartsOn = 0,
   onChangeDate,
+  onLongPressCell,
   onPressCell,
   onPressDateHeader,
   onPressEvent,
@@ -147,14 +177,26 @@ function _CalendarContainer<T extends ICalendarEventBase>({
   sortedMonthView = true,
   hideHours = false,
   isEventOrderingEnabled,
+  onPressMoreLabel,
+  renderCustomDateForMonth,
+  disableMonthEventCellPress = false,
+  showVerticalScrollIndicator = false,
+  itemSeparatorComponent = null,
+  enrichedEventsByDate,
+  enableEnrichedEvents = false,
+  eventsAreSorted = false,
+  onSwipeEnd,
 }: CalendarContainerProps<T>) {
-  const [targetDate, setTargetDate] = React.useState(dayjs(date))
+  // To ensure we have proper effect callback, use string to date comparision.
+  const dateString = date?.toString()
+
+  const [targetDate, setTargetDate] = React.useState(() => dayjs(date))
 
   React.useEffect(() => {
-    if (date) {
-      setTargetDate(dayjs(date))
+    if (dateString) {
+      setTargetDate(dayjs(dateString))
     }
-  }, [date])
+  }, [dateString]) // if setting `[date]`, it will triggered twice
 
   const allDayEvents = React.useMemo(
     () => events.filter((event) => isAllDayEvent(event.start, event.end)),
@@ -167,7 +209,7 @@ function _CalendarContainer<T extends ICalendarEventBase>({
   )
 
   const getDateRange = React.useCallback(
-    (date: dayjs.Dayjs) => {
+    (date: string | dayjs.Dayjs) => {
       switch (mode) {
         case 'month':
           return getDatesInMonth(date, locale)
@@ -179,6 +221,8 @@ function _CalendarContainer<T extends ICalendarEventBase>({
           return getDatesInNextOneDay(date, locale)
         case 'custom':
           return getDatesInNextCustomDays(date, weekStartsOn, weekEndsOn, locale)
+        case 'schedule': // TODO: this will update
+          return getDatesInMonth(date, locale)
         default:
           throw new Error(
             `[react-native-big-calendar] The mode which you specified "${mode}" is not supported.`,
@@ -211,13 +255,17 @@ function _CalendarContainer<T extends ICalendarEventBase>({
         }
       }
       setTargetDate(nextTargetDate)
-      if (onChangeDate) {
-        const nextDateRange = getDateRange(nextTargetDate)
-        onChangeDate([nextDateRange[0].toDate(), nextDateRange.slice(-1)[0].toDate()])
-      }
+      onSwipeEnd?.(nextTargetDate.toDate())
     },
-    [swipeEnabled, targetDate, mode, theme.isRTL, getDateRange, onChangeDate],
+    [swipeEnabled, theme.isRTL, onSwipeEnd, targetDate, mode],
   )
+
+  React.useEffect(() => {
+    if (dateString && onChangeDate) {
+      const dateRange = getDateRange(dateString)
+      onChangeDate([dateRange[0].toDate(), dateRange[dateRange.length - 1].toDate()])
+    }
+  }, [dateString, onChangeDate, getDateRange])
 
   const commonProps = {
     cellHeight,
@@ -252,6 +300,7 @@ function _CalendarContainer<T extends ICalendarEventBase>({
           weekStartsOn={weekStartsOn}
           hideNowIndicator={hideNowIndicator}
           showAdjacentMonths={showAdjacentMonths}
+          onLongPressCell={onLongPressCell}
           onPressCell={onPressCell}
           onPressDateHeader={onPressDateHeader}
           onPressEvent={onPressEvent}
@@ -262,6 +311,9 @@ function _CalendarContainer<T extends ICalendarEventBase>({
           eventMinHeightForMonthView={eventMinHeightForMonthView}
           sortedMonthView={sortedMonthView}
           moreLabel={moreLabel}
+          onPressMoreLabel={onPressMoreLabel}
+          renderCustomDateForMonth={renderCustomDateForMonth}
+          disableMonthEventCellPress={disableMonthEventCellPress}
         />
       </React.Fragment>
     )
@@ -280,6 +332,35 @@ function _CalendarContainer<T extends ICalendarEventBase>({
     showAllDayEventCell: showAllDayEventCell,
   }
 
+  if (mode === 'schedule') {
+    return (
+      <Schedule
+        events={[...daytimeEvents, ...allDayEvents]}
+        {...headerProps}
+        style={bodyContainerStyle}
+        containerHeight={height}
+        eventCellStyle={eventCellStyle}
+        calendarCellStyle={calendarCellStyle}
+        hideNowIndicator={hideNowIndicator}
+        overlapOffset={overlapOffset}
+        scrollOffsetMinutes={scrollOffsetMinutes}
+        ampm={ampm}
+        showTime={showTime}
+        onLongPressCell={onLongPressCell}
+        onPressCell={onPressCell}
+        onPressEvent={onPressEvent}
+        onSwipeHorizontal={onSwipeHorizontal}
+        renderEvent={renderEvent}
+        headerComponent={headerComponent}
+        headerComponentStyle={headerComponentStyle}
+        hourStyle={hourStyle}
+        isEventOrderingEnabled={isEventOrderingEnabled}
+        showVerticalScrollIndicator={showVerticalScrollIndicator}
+        itemSeparatorComponent={itemSeparatorComponent}
+      />
+    )
+  }
+
   return (
     <React.Fragment>
       <HeaderComponent {...headerProps} />
@@ -295,6 +376,7 @@ function _CalendarContainer<T extends ICalendarEventBase>({
         scrollOffsetMinutes={scrollOffsetMinutes}
         ampm={ampm}
         showTime={showTime}
+        onLongPressCell={onLongPressCell}
         onPressCell={onPressCell}
         onPressEvent={onPressEvent}
         onSwipeHorizontal={onSwipeHorizontal}
@@ -303,6 +385,10 @@ function _CalendarContainer<T extends ICalendarEventBase>({
         headerComponentStyle={headerComponentStyle}
         hourStyle={hourStyle}
         isEventOrderingEnabled={isEventOrderingEnabled}
+        showVerticalScrollIndicator={showVerticalScrollIndicator}
+        enrichedEventsByDate={enrichedEventsByDate}
+        enableEnrichedEvents={enableEnrichedEvents}
+        eventsAreSorted={eventsAreSorted}
       />
     </React.Fragment>
   )
