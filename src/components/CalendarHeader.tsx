@@ -102,7 +102,7 @@ function _CalendarHeader<T extends ICalendarEventBase>({
                     u['text-center'],
                   ]}
                 >
-                  {dateRange.length > 0 ? dateRange[dateRange.length - 1].week() : ''}
+                  {dateRange.length > 0 ? dateRange[Math.floor(dateRange.length / 2)].week() : ''}
                 </Text>
               </View>
             </View>
