@@ -73,11 +73,11 @@ function _CalendarHeader<T extends ICalendarEventBase>({
       ]}
     >
       {(!hideHours || showWeekNumber) && (
-        <View style={[u['z-10'], u['w-50'], borderColor]}>
+        <View style={[u['z-10'], u['w-50'], u['pt-2'], borderColor]}>
           {showWeekNumber ? (
             <Text
               style={[
-                theme.typography.xs,
+                theme.typography.xl,
                 u['text-center'],
                 {
                   color: theme.palette.gray['500'],
@@ -107,7 +107,7 @@ function _CalendarHeader<T extends ICalendarEventBase>({
             >
               <Text
                 style={[
-                  theme.typography.xs,
+                  theme.typography.xl,
                   u['text-center'],
                   {
                     color: shouldHighlight

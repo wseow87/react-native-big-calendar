@@ -150,12 +150,13 @@ function _CalendarBodyForMonthView<T extends ICalendarEventBase>({
                 i > 0 && u['border-t'],
                 { borderColor: theme.palette.gray['200'] },
                 u['p-2'],
-                u['flex-1'],
+                u['w-20'],
                 u['flex-column'],
                 {
                   minHeight: minCellHeight,
                 },
               ]}
+              key={'weekNumber'}
             >
               <Text
                 style={[

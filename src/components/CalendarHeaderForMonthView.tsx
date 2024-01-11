@@ -38,17 +38,19 @@ function _CalendarHeaderForMonthView({
       ]}
     >
       {showWeekNumber ? (
-        <View style={[u['w-20'], { height: 30 }]}>
-          <Text
-            style={[
-              u['text-center'],
-              {
-                color: theme.palette.gray['800'],
-              },
-            ]}
-          >
-            {weekNumberPrefix != undefined ? weekNumberPrefix : ''}
-          </Text>
+        <View style={[u['w-20'], { paddingTop: 2 }]} key={'weekNumber'}>
+          <View style={{ flex: 1, height: 30 }}>
+            <Text
+              style={[
+                u['text-center'],
+                {
+                  color: theme.palette.gray['800'],
+                },
+              ]}
+            >
+              {weekNumberPrefix != undefined ? weekNumberPrefix : ''}
+            </Text>
+          </View>
         </View>
       ) : null}
       {dates.map((date) => (
