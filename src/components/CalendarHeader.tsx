@@ -107,7 +107,7 @@ function _CalendarHeader<T extends ICalendarEventBase>({
             >
               <Text
                 style={[
-                  theme.typography.xl,
+                  theme.typography.xs,
                   u['text-center'],
                   {
                     color: shouldHighlight
