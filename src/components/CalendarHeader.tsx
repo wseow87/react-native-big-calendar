@@ -75,17 +75,37 @@ function _CalendarHeader<T extends ICalendarEventBase>({
       {(!hideHours || showWeekNumber) && (
         <View style={[u['z-10'], u['w-50'], u['pt-2'], borderColor]}>
           {showWeekNumber ? (
-            <Text
+            <View
               style={[
-                theme.typography.xl,
-                u['text-center'],
-                {
-                  color: theme.palette.gray['500'],
-                },
+                { height: cellHeight },
+                objHasContent(headerContentStyle) ? headerContentStyle : u['justify-between'],
               ]}
             >
-              {dateRange.length > 0 ? weekNumberPrefix + dateRange[0].week() : ''}
-            </Text>
+              <Text
+                style={[
+                  theme.typography.xs,
+                  u['text-center'],
+                  {
+                    color: theme.palette.gray['500'],
+                  },
+                ]}
+              >
+                {weekNumberPrefix}
+              </Text>
+              <View style={objHasContent(dayHeaderStyle) ? dayHeaderStyle : [u['mb-6']]}>
+                <Text
+                  style={[
+                    {
+                      color: theme.palette.gray['800'],
+                    },
+                    theme.typography.xl,
+                    u['text-center'],
+                  ]}
+                >
+                  {dateRange.length > 0 ? dateRange[0].week() : ''}
+                </Text>
+              </View>
+            </View>
           ) : null}
         </View>
       )}
