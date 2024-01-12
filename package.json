@@ -1,5 +1,5 @@
 {
-  "name": "react-native-big-calendar",
+  "name": "@wseow87/react-native-big-calendar",
   "version": "4.9.0",
   "main": "build/index.js",
   "jsnext:main": "build/index.es.js",
