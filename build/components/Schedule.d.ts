@@ -1,0 +1,42 @@
+import dayjs from 'dayjs';
+import React from 'react';
+import { type AccessibilityProps, type TextStyle, type ViewStyle } from 'react-native';
+import type { CalendarCellStyle, EventCellStyle, EventRenderer, HorizontalDirection, ICalendarEventBase } from '../interfaces';
+interface ScheduleProps<T extends ICalendarEventBase> {
+    events: T[];
+    cellHeight: number;
+    containerHeight: number;
+    dateRange: dayjs.Dayjs[];
+    scrollOffsetMinutes: number;
+    ampm: boolean;
+    showTime: boolean;
+    style: ViewStyle;
+    eventCellStyle?: EventCellStyle<T>;
+    eventCellAccessibilityProps?: AccessibilityProps;
+    calendarCellStyle?: CalendarCellStyle;
+    calendarCellAccessibilityProps?: AccessibilityProps;
+    hideNowIndicator?: boolean;
+    overlapOffset?: number;
+    onLongPressCell?: (date: Date) => void;
+    onPressCell?: (date: Date) => void;
+    onPressEvent?: (event: T) => void;
+    onSwipeHorizontal?: (d: HorizontalDirection) => void;
+    renderEvent?: EventRenderer<T>;
+    headerComponent?: React.ReactElement | null;
+    headerComponentStyle?: ViewStyle;
+    hourStyle?: TextStyle;
+    hideHours?: boolean;
+    isEventOrderingEnabled?: boolean;
+    showVerticalScrollIndicator?: boolean;
+    activeDate?: Date;
+    weekDayHeaderHighlightColor?: string;
+    dayHeaderHighlightColor?: string;
+    itemSeparatorComponent?: React.ComponentType<{
+        highlighted: boolean;
+    }> | null | undefined;
+    locale: string;
+    scheduleMonthSeparatorStyle?: TextStyle;
+}
+declare function _Schedule<T extends ICalendarEventBase>({ events, ampm, onPressEvent, eventCellStyle, eventCellAccessibilityProps, showTime, isEventOrderingEnabled, overlapOffset, renderEvent, containerHeight, style, activeDate, weekDayHeaderHighlightColor, dayHeaderHighlightColor, itemSeparatorComponent, locale, calendarCellAccessibilityProps, scheduleMonthSeparatorStyle, }: ScheduleProps<T>): React.JSX.Element;
+export declare const Schedule: typeof _Schedule;
+export {};
